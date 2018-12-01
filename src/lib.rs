@@ -7,34 +7,38 @@ pub type Array2x64 = [u64; 2];
 pub struct ThreeFryRng {
     ctr: Array2x64,
     key: Array2x64,
-    // TODO: implement and benchmark a buffer so we don't
-    // burn half our bits.
+    val: u64,
+    new: bool,
 }
 
 impl ThreeFryRng {
     pub fn from_key64(x1: u64) -> Self {
-        Self {
-            ctr: [0,0],
-            key: [x1,0],
-        }
+        ThreeFryRng::from_key128(x1, 0)
     }
     pub fn from_key128(x1: u64, x2:u64) -> Self {
         Self {
             ctr: [0,0],
             key: [x1,x2],
+            val: 0,
+            new: false,
         }
     }
 }
 
-
 impl RngCore for ThreeFryRng {
     fn next_u64(&mut self) -> u64 {
-        let rand: u64 = generate(self.ctr, self.key)[0];
+        if self.new {
+            self.new = false;
+            return self.val;
+        }
+        let pair = generate(self.ctr, self.key);
+        self.val = pair[1];
+        self.new = true;
         self.ctr[0] = self.ctr[0].wrapping_add(1);
         if self.ctr[0] == 0 {
             self.ctr[1] = self.ctr[1].wrapping_add(1);
         }
-        rand
+        pair[0]
     }
     fn next_u32(&mut self) -> u32 {
         self.next_u64() as u32
@@ -53,10 +57,7 @@ impl SeedableRng for ThreeFryRng {
     fn from_seed(seed: Self::Seed) -> Self {
         let mut key = [0u64; 2];
         le::read_u64_into(&seed, &mut key);
-        Self {
-            ctr: [0,0],
-            key: key,
-        }
+        Self::from_key128(key[0], key[1])
     }
 }
 
@@ -167,8 +168,8 @@ mod tests {
     #[test]
     fn next_u64() {
         let mut rng = ThreeFryRng::from_key128(EXAMPLE_SEED1_U64, EXAMPLE_SEED2_U64);
-        for i in 0..10 {
-            assert_eq!(rng.next_u64(), TEST_VEC_1[2*i]);
+        for i in 0..20 {
+            assert_eq!(rng.next_u64(), TEST_VEC_1[i]);
         }
     }
 

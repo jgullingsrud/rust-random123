@@ -20,9 +20,8 @@ fn bench_generate(c: &mut Criterion) {
 }
 
 fn bench_u64(c: &mut Criterion) {
-    let ctr: Array2x64 = [0,1973];
-    let key: Array2x64 = [EXAMPLE_SEED1_U64, EXAMPLE_SEED2_U64];
-    let mut rng = ThreeFryRng { ctr, key };
+    let seed = [0u8; 16];
+    let mut rng = ThreeFryRng::from_seed(seed);
     c.bench_function("threefry_next_u64", |b| b.iter(|| rng.next_u64()));
 }
 
