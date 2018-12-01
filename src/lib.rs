@@ -1,6 +1,6 @@
 extern crate rand_core;
 
-use rand_core::{RngCore, Error, impls};
+use rand_core::{RngCore, SeedableRng, Error, impls, le};
 
 pub type Array2x64 = [u64; 2];
 
@@ -28,6 +28,19 @@ impl RngCore for ThreeFryRng {
     }
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
         Ok(self.fill_bytes(dest))
+    }
+}
+
+impl SeedableRng for ThreeFryRng {
+    type Seed = [u8; 16];
+
+    fn from_seed(seed: Self::Seed) -> Self {
+        let mut key = [0u64; 2];
+        le::read_u64_into(&seed, &mut key);
+        Self {
+            ctr: [0,0],
+            key: key,
+        }
     }
 }
 
@@ -119,7 +132,7 @@ mod tests {
     const EXAMPLE_SEED2_U64: u64 = 0xdecafbadbeadfeed;
 
     use super::{ThreeFryRng, Array2x64, generate};
-    use rand_core::RngCore;
+    use rand_core::{RngCore, SeedableRng};
 
     #[test]
     fn exact_values() {
@@ -143,6 +156,12 @@ mod tests {
         for i in 0..10 {
             assert_eq!(rng.next_u64(), TEST_VEC_1[2*i]);
         }
+    }
+
+    #[test]
+    fn seedable() {
+        let mut rng = ThreeFryRng::seed_from_u64(42);
+        assert_eq!(rng.next_u64(), 391376552519608501);
     }
 }
 
