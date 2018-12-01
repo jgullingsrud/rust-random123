@@ -5,11 +5,27 @@ use rand_core::{RngCore, SeedableRng, Error, impls, le};
 pub type Array2x64 = [u64; 2];
 
 pub struct ThreeFryRng {
-    pub ctr: Array2x64,
-    pub key: Array2x64,
+    ctr: Array2x64,
+    key: Array2x64,
     // TODO: implement and benchmark a buffer so we don't
     // burn half our bits.
 }
+
+impl ThreeFryRng {
+    pub fn from_key64(x1: u64) -> Self {
+        Self {
+            ctr: [0,0],
+            key: [x1,0],
+        }
+    }
+    pub fn from_key128(x1: u64, x2:u64) -> Self {
+        Self {
+            ctr: [0,0],
+            key: [x1,x2],
+        }
+    }
+}
+
 
 impl RngCore for ThreeFryRng {
     fn next_u64(&mut self) -> u64 {
@@ -150,9 +166,7 @@ mod tests {
 
     #[test]
     fn next_u64() {
-        let ctr: Array2x64 = [0,0];
-        let key: Array2x64 = [EXAMPLE_SEED1_U64, EXAMPLE_SEED2_U64];
-        let mut rng = ThreeFryRng { ctr, key };
+        let mut rng = ThreeFryRng::from_key128(EXAMPLE_SEED1_U64, EXAMPLE_SEED2_U64);
         for i in 0..10 {
             assert_eq!(rng.next_u64(), TEST_VEC_1[2*i]);
         }
