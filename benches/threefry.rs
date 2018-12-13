@@ -1,12 +1,12 @@
 
 #[macro_use]
 extern crate criterion;
-extern crate rand_threefry;
+extern crate random123;
 extern crate rand_chacha;
 extern crate rand_core;
 
 use criterion::Criterion;
-use rand_threefry::{ThreeFryRng,Array2x64, rand};
+use random123::threefry::{ThreeFryRng,Array2x64, rand};
 use rand_chacha::ChaChaRng;
 use rand_core::{SeedableRng, RngCore};
 
