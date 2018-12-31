@@ -54,6 +54,10 @@ fn philox_4x64round(ctr: Array4x64, key: Array2x64) -> Array4x64 {
     [hi1^ctr[1]^key[0], lo1, hi0^ctr[3]^key[1], lo0]
 }
 
+fn philox_1x32key(key: Array1x32) -> Array1x32 {
+    [key[0].wrapping_add(PHILOX_W32_0)]
+}
+
 fn philox_2x32key(key: Array2x32) -> Array2x32 {
     [key[0].wrapping_add(PHILOX_W32_0), key[1].wrapping_add(PHILOX_W32_1)]
 }
@@ -72,9 +76,37 @@ pub fn philox_4x32(ctr: Array4x32, key: Array2x32) -> Array4x32 {
     ctr
 }
 
+pub fn philox_2x32(ctr: Array2x32, key: Array1x32) -> Array2x32 {
+                                   let ctr = philox_2x32round(ctr, key);    // 0
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 1
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 2
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 3
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 4
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 5
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 6
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 7
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 8
+    let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 9
+    ctr
+}
+
+
 #[cfg(test)]
 mod tests {
-    const TEST_VEC_1: [u32; 40] = [
+    const TEST_VEC_2X32: [u32; 20] = [
+        0xa6c50e2f, 0x1588d3cf,
+        0x69fa231c, 0x42a3e92d,
+        0x8a9a54bc, 0x63ab381,
+        0x64153a09, 0x2368eb47,
+        0x1547b128, 0x5fdf6b1d,
+        0x5eac56b9, 0x12601ce7,
+        0xa3356439, 0x35af6c44,
+        0x5388c668, 0x48435fc3,
+        0xe6bc1a68, 0xc68a441c,
+        0x5c1cb970, 0xc8f3d547,
+    ];
+
+    const TEST_VEC_4X32: [u32; 40] = [
         0xcc7d356a, 0x5e7dedd7, 0x76798bc3, 0x6c05818c,
         0x4d7d84fc, 0x44ea4626, 0x26680a11, 0xc5c86681,
         0x5344ffa0, 0xa0300aea, 0x650c4611, 0xf274539d,
@@ -89,11 +121,25 @@ mod tests {
     const SEED1: u32 = 0x11111111;
     const SEED2: u32 = 0x22222222;
 
-    use super::{Array2x32, Array4x32, philox_4x32};
+    use super::{Array1x32, Array2x32, Array4x32, philox_2x32, philox_4x32};
     //use rand_core::{RngCore, SeedableRng};
 
     #[test]
-    fn exact_values() {
+    fn exact_values_philox_2x32() {
+        let mut ctr: Array2x32 = [0,0];
+        let key: Array1x32 = [SEED1];
+        for i in 0..10 {
+            ctr[0] = i;
+            let x = philox_2x32(ctr, key);
+            let i0 = (2*i+0) as usize;
+            let i1 = (2*i+1) as usize;
+            assert_eq!(x[0], TEST_VEC_2X32[i0]);
+            assert_eq!(x[1], TEST_VEC_2X32[i1]);
+        }
+    }
+
+    #[test]
+    fn exact_values_philox_4x32() {
         let mut ctr: Array4x32 = [0,0,0,0];
         let key: Array2x32 = [SEED1, SEED2];
         for i in 0..10 {
@@ -103,10 +149,10 @@ mod tests {
             let i1 = (4*i+1) as usize;
             let i2 = (4*i+2) as usize;
             let i3 = (4*i+3) as usize;
-            assert_eq!(x[0], TEST_VEC_1[i0]);
-            assert_eq!(x[1], TEST_VEC_1[i1]);
-            assert_eq!(x[2], TEST_VEC_1[i2]);
-            assert_eq!(x[3], TEST_VEC_1[i3]);
+            assert_eq!(x[0], TEST_VEC_4X32[i0]);
+            assert_eq!(x[1], TEST_VEC_4X32[i1]);
+            assert_eq!(x[2], TEST_VEC_4X32[i2]);
+            assert_eq!(x[3], TEST_VEC_4X32[i3]);
         }
     }
 
