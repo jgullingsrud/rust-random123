@@ -58,26 +58,16 @@ fn philox_1x32key(key: Array1x32) -> Array1x32 {
     [key[0].wrapping_add(PHILOX_W32_0)]
 }
 
+fn philox_1x64key(key: Array1x64) -> Array1x64 {
+    [key[0].wrapping_add(PHILOX_W64_0)]
+}
+
 fn philox_2x32key(key: Array2x32) -> Array2x32 {
     [key[0].wrapping_add(PHILOX_W32_0), key[1].wrapping_add(PHILOX_W32_1)]
 }
 
 fn philox_2x64key(key: Array2x64) -> Array2x64 {
     [key[0].wrapping_add(PHILOX_W64_0), key[1].wrapping_add(PHILOX_W64_1)]
-}
-
-pub fn philox_4x32(ctr: Array4x32, key: Array2x32) -> Array4x32 {
-                                   let ctr = philox_4x32round(ctr, key);    // 0
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 1
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 2
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 3
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 4
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 5
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 6
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 7
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 8
-    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 9
-    ctr
 }
 
 pub fn philox_2x32(ctr: Array2x32, key: Array1x32) -> Array2x32 {
@@ -91,6 +81,34 @@ pub fn philox_2x32(ctr: Array2x32, key: Array1x32) -> Array2x32 {
     let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 7
     let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 8
     let key = philox_1x32key(key); let ctr = philox_2x32round(ctr, key);    // 9
+    ctr
+}
+
+pub fn philox_2x64(ctr: Array2x64, key: Array1x64) -> Array2x64 {
+                                   let ctr = philox_2x64round(ctr, key);    // 0
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 1
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 2
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 3
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 4
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 5
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 6
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 7
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 8
+    let key = philox_1x64key(key); let ctr = philox_2x64round(ctr, key);    // 9
+    ctr
+}
+
+pub fn philox_4x32(ctr: Array4x32, key: Array2x32) -> Array4x32 {
+                                   let ctr = philox_4x32round(ctr, key);    // 0
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 1
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 2
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 3
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 4
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 5
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 6
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 7
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 8
+    let key = philox_2x32key(key); let ctr = philox_4x32round(ctr, key);    // 9
     ctr
 }
 
@@ -124,6 +142,19 @@ mod tests {
         0x5c1cb970, 0xc8f3d547,
     ];
 
+    const TEST_VEC_2X64: [u64; 20] = [
+        0x34675e1ecb3b1b21, 0xee5260e7a5c77077,
+        0xadb9b4be0434137d, 0x93d08d9f78601509,
+        0x918659c175f3632e, 0xc7cca79fda8a2af6,
+        0xa52f003f96814ae6, 0x551760aa1b7bca9a,
+        0x8b5225b0e1250a74, 0xe2e3a62578a061e5,
+        0x66ffbbc69accd943, 0xa55d0934fbd351d6,
+        0xbb6a97c67a5369c6, 0x23aaefe4dd4e8c73,
+        0xa8bb64c61cf1e41e, 0xfe70f49925e4af13,
+        0xfbb1dc990229435b, 0xdd17cb26850f9476,
+        0x76a57ff13ece4477, 0xe9892f7aec6ffe79,
+    ];
+
     const TEST_VEC_4X32: [u32; 40] = [
         0xcc7d356a, 0x5e7dedd7, 0x76798bc3, 0x6c05818c,
         0x4d7d84fc, 0x44ea4626, 0x26680a11, 0xc5c86681,
@@ -153,8 +184,9 @@ mod tests {
     const SEED1: u32 = 0x11111111;
     const SEED2: u32 = 0x22222222;
 
-    use super::{Array1x32, Array2x32, Array4x32, Array2x64, Array4x64, philox_2x32, philox_4x32, philox_4x64};
-    //use rand_core::{RngCore, SeedableRng};
+    use super::{Array1x32, Array2x32, Array4x32};
+    use super::{Array1x64, Array2x64, Array4x64};
+    use super::{philox_2x32, philox_4x32, philox_2x64, philox_4x64};
 
     #[test]
     fn exact_values_philox_2x32() {
@@ -167,6 +199,20 @@ mod tests {
             let i1 = (2*i+1) as usize;
             assert_eq!(x[0], TEST_VEC_2X32[i0]);
             assert_eq!(x[1], TEST_VEC_2X32[i1]);
+        }
+    }
+
+    #[test]
+    fn exact_values_philox_2x64() {
+        let mut ctr: Array2x64 = [0,0];
+        let key: Array1x64 = [SEED1 as u64];
+        for i in 0..10 {
+            ctr[0] = i;
+            let x = philox_2x64(ctr, key);
+            let i0 = (2*i+0) as usize;
+            let i1 = (2*i+1) as usize;
+            assert_eq!(x[0], TEST_VEC_2X64[i0]);
+            assert_eq!(x[1], TEST_VEC_2X64[i1]);
         }
     }
 
@@ -205,21 +251,4 @@ mod tests {
             assert_eq!(x[3], TEST_VEC_4X64[i3]);
         }
     }
-
-//    #[test]
-
-//    #[test]
-//    fn next_u64() {
-//        let mut rng = ThreeFryRng::seed_from_u64(0);
-//        rng.set_key(SEED1_U64, SEED2_U64);
-//        for i in 0..20 {
-//            assert_eq!(rng.next_u64(), TEST_VEC_1[i]);
-//        }
-//    }
-//
-//    #[test]
-//    fn seedable() {
-//        let mut rng = ThreeFryRng::seed_from_u64(42);
-//        assert_eq!(rng.next_u64(), 391376552519608501);
-//    }
 }
