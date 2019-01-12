@@ -1,3 +1,4 @@
+use rand_core::le;
 
 #[inline]
 fn mul32(a: u32, b:u32) -> (u32, u32) {
@@ -31,6 +32,106 @@ pub type Array4x32 = [u32; 4];
 pub type Array1x64 = [u64; 1];
 pub type Array2x64 = [u64; 2];
 pub type Array4x64 = [u64; 4];
+
+#[derive(Clone)]
+pub struct Philox2x32 {
+    ctr: Array2x32,
+    key: Array1x32,
+}
+
+impl Philox2x32 {
+    pub fn next(&mut self) -> Array2x32 {
+        let results = philox_2x32(self.ctr, self.key);
+        self.ctr[0] = self.ctr[0].wrapping_add(1);
+        if self.ctr[0] == 0 {
+            self.ctr[1] = self.ctr[1].wrapping_add(1);
+        }
+        results
+    }
+    pub fn from_seed(seed: [u8; 4]) -> Self {
+        let mut key = [0u32; 1];
+        le::read_u32_into(&seed, &mut key);
+        Self { ctr: [0,0], key: key }
+    }
+}
+
+#[derive(Clone)]
+pub struct Philox2x64 {
+    ctr: Array2x64,
+    key: Array1x64,
+}
+
+impl Philox2x64 {
+    pub fn next(&mut self) -> Array2x64 {
+        let results = philox_2x64(self.ctr, self.key);
+        self.ctr[0] = self.ctr[0].wrapping_add(1);
+        if self.ctr[0] == 0 {
+            self.ctr[1] = self.ctr[1].wrapping_add(1);
+        }
+        results
+    }
+    pub fn from_seed(seed: [u8; 8]) -> Self {
+        let mut key = [0u64; 1];
+        le::read_u64_into(&seed, &mut key);
+        Self { ctr: [0,0], key: key }
+    }
+}
+
+#[derive(Clone)]
+pub struct Philox4x32 {
+    ctr: Array4x32,
+    key: Array2x32,
+}
+
+impl Philox4x32 {
+    pub fn next(&mut self) -> Array4x32 {
+        let results = philox_4x32(self.ctr, self.key);
+        self.ctr[0] = self.ctr[0].wrapping_add(1);
+        if self.ctr[0] == 0 {
+            self.ctr[1] = self.ctr[1].wrapping_add(1);
+            if self.ctr[1] == 0 {
+                self.ctr[2] = self.ctr[2].wrapping_add(1);
+                if self.ctr[2] == 0 {
+                    self.ctr[3] = self.ctr[3].wrapping_add(1);
+                }
+            }
+        }
+        results
+    }
+    pub fn from_seed(seed: [u8; 8]) -> Self {
+        let mut key = [0u32; 2];
+        le::read_u32_into(&seed, &mut key);
+        Self { ctr: [0,0,0,0], key: key }
+    }
+}
+
+#[derive(Clone)]
+pub struct Philox4x64 {
+    ctr: Array4x64,
+    key: Array2x64,
+}
+
+impl Philox4x64 {
+    pub fn next(&mut self) -> Array4x64 {
+        let results = philox_4x64(self.ctr, self.key);
+        self.ctr[0] = self.ctr[0].wrapping_add(1);
+        if self.ctr[0] == 0 {
+            self.ctr[1] = self.ctr[1].wrapping_add(1);
+            if self.ctr[1] == 0 {
+                self.ctr[2] = self.ctr[2].wrapping_add(1);
+                if self.ctr[2] == 0 {
+                    self.ctr[3] = self.ctr[3].wrapping_add(1);
+                }
+            }
+        }
+        results
+    }
+    pub fn from_seed(seed: [u8; 16]) -> Self {
+        let mut key = [0u64; 2];
+        le::read_u64_into(&seed, &mut key);
+        Self { ctr: [0,0,0,0], key: key }
+    }
+}
 
 fn philox_2x32round(ctr: Array2x32, key: Array1x32) -> Array2x32 {
     let (hi, lo) = mul32(PHILOX_M2X32_0, ctr[0]);
