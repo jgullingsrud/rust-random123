@@ -1,91 +1,28 @@
-use core::fmt;
-use rand_core::{RngCore, SeedableRng, Error, le};
-use rand_core::block::{BlockRngCore, BlockRng64};
+use rand_core::le;
 
 pub type Array2x64 = [u64; 2];
 
 #[derive(Clone)]
-pub struct ThreeFryCore {
+pub struct ThreeFry2x64 {
     ctr: Array2x64,
     key: Array2x64,
 }
 
-impl BlockRngCore for ThreeFryCore {
-    type Item = u64;
-    type Results = [u64; 2];
-
-    fn generate(&mut self, results: &mut Self::Results) {
-        rand(self.ctr, self.key, results);
+impl ThreeFry2x64 {
+    pub fn next(&mut self) -> Array2x64 {
+        let mut results = [0u64; 2];
+        threefry_2x64(self.ctr, self.key, &mut results);
         self.ctr[0] = self.ctr[0].wrapping_add(1);
         if self.ctr[0] == 0 {
             self.ctr[1] = self.ctr[1].wrapping_add(1);
         }
+        results
     }
-}
 
-impl SeedableRng for ThreeFryCore {
-    type Seed = [u8; 16];
-
-    fn from_seed(seed: Self::Seed) -> Self {
+    pub fn from_seed(seed: [u8; 16]) -> Self {
         let mut key = [0u64; 2];
         le::read_u64_into(&seed, &mut key);
         Self { ctr: [0,0], key: key }
-    }
-}
-
-impl fmt::Debug for ThreeFryCore {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ThreeFryCore {{}}")
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ThreeFryRng(BlockRng64<ThreeFryCore>);
-
-impl SeedableRng for ThreeFryRng {
-    type Seed = <ThreeFryCore as SeedableRng>::Seed;
-
-    fn from_seed(seed: Self::Seed) -> Self {
-        ThreeFryRng(BlockRng64::<ThreeFryCore>::from_seed(seed))
-    }
-
-    fn from_rng<R: RngCore>(rng: R) -> Result<Self, Error> {
-        BlockRng64::<ThreeFryCore>::from_rng(rng).map(ThreeFryRng)
-    }
-}
-
-impl From<ThreeFryCore> for ThreeFryRng {
-    fn from(core: ThreeFryCore) -> Self {
-        ThreeFryRng(BlockRng64::new(core))
-    }
-}
-
-impl ThreeFryRng {
-    pub fn set_key(&mut self, x1: u64, x2:u64) {
-        self.0.core.key[0] = x1;
-        self.0.core.key[1] = x2;
-    }
-}
-
-impl RngCore for ThreeFryRng {
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        self.0.next_u32()
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        self.0.next_u64()
-    }
-
-    #[inline]
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.0.fill_bytes(dest)
-    }
-
-    #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.0.try_fill_bytes(dest)
     }
 }
 
@@ -128,7 +65,7 @@ macro_rules! sbox {
     }}
 }
 
-pub fn rand(ctr: Array2x64, key: Array2x64, x: &mut Array2x64) {
+pub fn threefry_2x64(ctr: Array2x64, key: Array2x64, x: &mut Array2x64) {
     let mut ks: [u64; 3] = [0, 0, SKEIN_PARITY];
     for i in 0..2 {
         ks[i] = key[i];
@@ -171,8 +108,7 @@ mod tests {
     const SEED1_U64: u64 = 0xdeadbeef12345678;
     const SEED2_U64: u64 = 0xdecafbadbeadfeed;
 
-    use super::{ThreeFryRng, Array2x64, rand};
-    use rand_core::{RngCore, SeedableRng};
+    use super::{Array2x64, threefry_2x64};
 
     #[test]
     fn exact_values() {
@@ -181,7 +117,7 @@ mod tests {
         let mut x: Array2x64 = [0,0];
         for i in 0..10 {
             ctr[0] = i;
-            rand(ctr, key, &mut x);
+            threefry_2x64(ctr, key, &mut x);
             let i0 = (2*i+0) as usize;
             let i1 = (2*i+1) as usize;
             assert_eq!(x[0], TEST_VEC_1[i0]);
@@ -189,19 +125,19 @@ mod tests {
         }
     }
 
-    #[test]
-    fn next_u64() {
-        let mut rng = ThreeFryRng::seed_from_u64(0);
-        rng.set_key(SEED1_U64, SEED2_U64);
-        for i in 0..20 {
-            assert_eq!(rng.next_u64(), TEST_VEC_1[i]);
-        }
-    }
-
-    #[test]
-    fn seedable() {
-        let mut rng = ThreeFryRng::seed_from_u64(42);
-        assert_eq!(rng.next_u64(), 391376552519608501);
-    }
+//    #[test]
+//    fn next_u64() {
+//        let mut rng = ThreeFryRng::seed_from_u64(0);
+//        rng.set_key(SEED1_U64, SEED2_U64);
+//        for i in 0..20 {
+//            assert_eq!(rng.next_u64(), TEST_VEC_1[i]);
+//        }
+//    }
+//
+//    #[test]
+//    fn seedable() {
+//        let mut rng = ThreeFryRng::seed_from_u64(42);
+//        assert_eq!(rng.next_u64(), 391376552519608501);
+//    }
 }
 
