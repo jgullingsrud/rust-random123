@@ -112,6 +112,7 @@ pub struct Philox4x64 {
 }
 
 impl Philox4x64 {
+    #[inline]
     pub fn next(&mut self) -> Array4x64 {
         let results = philox_4x64(self.ctr, self.key);
         self.ctr[0] = self.ctr[0].wrapping_add(1);
@@ -133,40 +134,48 @@ impl Philox4x64 {
     }
 }
 
+#[inline]
 fn philox_2x32round(ctr: Array2x32, key: Array1x32) -> Array2x32 {
     let (hi, lo) = mul32(PHILOX_M2X32_0, ctr[0]);
     [hi ^ key[0]^ctr[1], lo]
 }
 
+#[inline]
 fn philox_2x64round(ctr: Array2x64, key: Array1x64) -> Array2x64 {
     let (hi, lo) = mul64(PHILOX_M2X64_0, ctr[0]);
     [hi ^ key[0]^ctr[1], lo]
 }
 
+#[inline]
 fn philox_4x32round(ctr: Array4x32, key: Array2x32) -> Array4x32 {
     let (hi0, lo0) = mul32(PHILOX_M4X32_0, ctr[0]);
     let (hi1, lo1) = mul32(PHILOX_M4X32_1, ctr[2]);
     [hi1^ctr[1]^key[0], lo1, hi0^ctr[3]^key[1], lo0]
 }
 
+#[inline]
 fn philox_4x64round(ctr: Array4x64, key: Array2x64) -> Array4x64 {
     let (hi0, lo0) = mul64(PHILOX_M4X64_0, ctr[0]);
     let (hi1, lo1) = mul64(PHILOX_M4X64_1, ctr[2]);
     [hi1^ctr[1]^key[0], lo1, hi0^ctr[3]^key[1], lo0]
 }
 
+#[inline]
 fn philox_1x32key(key: Array1x32) -> Array1x32 {
     [key[0].wrapping_add(PHILOX_W32_0)]
 }
 
+#[inline]
 fn philox_1x64key(key: Array1x64) -> Array1x64 {
     [key[0].wrapping_add(PHILOX_W64_0)]
 }
 
+#[inline]
 fn philox_2x32key(key: Array2x32) -> Array2x32 {
     [key[0].wrapping_add(PHILOX_W32_0), key[1].wrapping_add(PHILOX_W32_1)]
 }
 
+#[inline]
 fn philox_2x64key(key: Array2x64) -> Array2x64 {
     [key[0].wrapping_add(PHILOX_W64_0), key[1].wrapping_add(PHILOX_W64_1)]
 }

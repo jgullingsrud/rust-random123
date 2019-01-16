@@ -1,7 +1,7 @@
 
-extern crate random123;
+extern crate rand_123;
 
-use random123::threefry::{Array2x64,threefry_2x64};
+use rand_123::threefry::{Array2x64,threefry_2x64};
 
 const EXAMPLE_SEED1_U64: u64 = 0xdeadbeef12345678;
 const EXAMPLE_SEED2_U64: u64 = 0xdecafbadbeadfeed;

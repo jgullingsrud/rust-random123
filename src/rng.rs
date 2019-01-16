@@ -91,3 +91,19 @@ impl_rng!(Philox4x64, 4, u64,16, BlockRng64, Philox4x64Rng);
 
 impl_rng!(ThreeFry2x64, 2, u64,16, BlockRng64, ThreeFry2x64Rng);
 
+#[cfg(test)]
+mod tests {
+
+    use super::ThreeFry2x64Rng;
+    use rand_core::{SeedableRng, RngCore};
+
+    #[test]
+    fn fill_bytes() {
+        // more of an example really
+
+        let mut buf = [0u8; 64];
+        let mut rng = ThreeFry2x64Rng::seed_from_u64(42);
+        rng.fill_bytes(&mut buf);
+    }
+}
+
